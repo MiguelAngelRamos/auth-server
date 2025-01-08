@@ -1,19 +1,25 @@
 package com.kibernumacademy.authserver.helpers;
 
 import java.nio.charset.StandardCharsets;
+
 import java.util.Date;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.kibernumacademy.authserver.model.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
 
+@Component
+@Slf4j
 public class JwtHelper {
 
   @Value("${application.jwt.secret}")
@@ -34,12 +40,15 @@ public class JwtHelper {
 
   public boolean validateToken(String token) {
     try {
-      final Date expirationDate  = getExpirationDate(token);
-      return expirationDate.after(new Date());
-    } catch() {
-
-    } catch() {
-
+      final Date expirationDate  = getExpirationDate(token); // Fecha de expiración
+      return expirationDate.after(new Date()); // true si aún no expira 
+    } catch(SignatureException e) {
+      log.error("Token inválido firma incorrecta", e);
+      return false;
+    } catch(Exception e) {
+      // Otras excepciones 
+      log.error("Token inválido", e);
+      return false;
     }
   }
 
